@@ -38,7 +38,7 @@ app.UseHttpsRedirection();
 //customer endpoints
 app.MapGet("/api/customers", (BangazonDbContext dbContext) =>
 {
-    var customers = dbContext.Customers.ToList();
+    var customers = dbContext.Customers.OrderBy(c => c.CustomerId).ToList();
     return Results.Ok(customers);
 });
 
@@ -118,6 +118,16 @@ app.MapGet("api/orders/{id}", (int id, BangazonDbContext dbContext) =>
     return Results.Ok(order);
 });
 
+app.MapGet("/api/orders/{orderId}/products", async (int orderId, BangazonDbContext db) =>
+{
+    var products = await db.Ordered_Products
+        .Where(op => op.OrderId == orderId)
+        .Select(op => op.Product)
+        .ToListAsync();
+
+    return Results.Ok(products);
+});
+
 app.MapPost("/api/orders", (Order order, BangazonDbContext dbContext) =>
 {
     dbContext.Orders.Add(order);
@@ -168,8 +178,11 @@ app.MapDelete("/api/orders/{id}", (int id, BangazonDbContext dbContext) =>
 app.MapGet("/api/products", (BangazonDbContext dbContext) =>
 {
     var products = dbContext.Products.ToList();
+
+
     return Results.Ok(products);
 });
+
 
 app.MapGet("/api/products/{id}", (int id, BangazonDbContext dbContext) =>
 {
